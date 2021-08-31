@@ -23,6 +23,7 @@ import Breadcrumb from 'app/views/performance/breadcrumb';
 import {getCurrentLandingDisplay, LandingDisplayField} from '../landing/utils';
 
 import {eventsRouteWithQuery} from './transactionEvents/utils';
+import {spansRouteWithQuery} from './transactionSpans/utils';
 import {tagsRouteWithQuery} from './transactionTags/utils';
 import {vitalsRouteWithQuery} from './transactionVitals/utils';
 import Tab from './tabs';
@@ -48,6 +49,10 @@ const TAB_ANALYTICS: Partial<Record<Tab, AnalyticInfo>> = {
   [Tab.Events]: {
     eventKey: 'performance_views.events.events_tab_clicked',
     eventName: 'Performance Views: Events tab clicked',
+  },
+  [Tab.Spans]: {
+    eventKey: 'performance_views.spans.spans_tab_clicked',
+    eventName: 'Performance Views: Spans tab clicked',
   },
 };
 
@@ -249,6 +254,13 @@ class TransactionHeader extends React.Component<Props> {
       query: location.query,
     });
 
+    const spansTarget = spansRouteWithQuery({
+      orgSlug: organization.slug,
+      transaction: transactionName,
+      projectID: decodeScalar(location.query.project),
+      query: location.query,
+    });
+
     return (
       <Layout.Header>
         <Layout.HeaderContent>
@@ -295,6 +307,16 @@ class TransactionHeader extends React.Component<Props> {
                 onClick={this.trackTabClick(Tab.Events)}
               >
                 {t('All Events')}
+              </ListLink>
+            </Feature>
+            <Feature features={['organizations:performance-suspect-spans-view']}>
+              <ListLink
+                data-test-id="spans-tab"
+                to={spansTarget}
+                isActive={() => currentTab === Tab.Spans}
+                onClick={this.trackTabClick(Tab.Spans)}
+              >
+                {t('Spans')}
               </ListLink>
             </Feature>
           </StyledNavTabs>

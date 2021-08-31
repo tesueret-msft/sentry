@@ -1390,6 +1390,13 @@ function routes() {
               }
               component={SafeLazyLoad}
             />
+            <Route
+              path="/organizations/:orgId/performance/summary/spans/"
+              componentPromise={() =>
+                import('app/views/performance/transactionSummary/transactionSpans')
+              }
+              component={SafeLazyLoad}
+            />
           </Route>
           <Route
             path="/organizations/:orgId/performance/vitaldetail/"
