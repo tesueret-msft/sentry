@@ -1,8 +1,17 @@
 import {css} from '@emotion/react';
 
 import {t} from 'app/locale';
-import {DynamicSamplingInnerName, LegacyBrowser} from 'app/types/dynamicSampling';
+import {
+  DynamicSamplingConditionLogicalInner,
+  DynamicSamplingInnerName,
+  DynamicSamplingInnerOperator,
+  LegacyBrowser,
+} from 'app/types/dynamicSampling';
 import theme from 'app/utils/theme';
+
+import ConditionFields from './conditionFields';
+
+type Conditions = React.ComponentProps<typeof ConditionFields>['conditions'];
 
 export const modalCss = css`
   [role='document'] {
@@ -95,4 +104,86 @@ export function getMatchFieldPlaceholder(category: DynamicSamplingInnerName) {
     default:
       return '';
   }
+}
+
+export function getNewCondition(
+  condition: Conditions[0]
+): DynamicSamplingConditionLogicalInner {
+  // DynamicSamplingConditionLogicalInnerEqBoolean
+  if (
+    condition.category === DynamicSamplingInnerName.EVENT_BROWSER_EXTENSIONS ||
+    condition.category === DynamicSamplingInnerName.EVENT_WEB_CRAWLERS ||
+    condition.category === DynamicSamplingInnerName.EVENT_LOCALHOST
+  ) {
+    return {
+      op: DynamicSamplingInnerOperator.EQUAL,
+      name: condition.category,
+      value: true,
+    };
+  }
+
+  // DynamicSamplingConditionLogicalInnerCustom
+  if (condition.category === DynamicSamplingInnerName.EVENT_LEGACY_BROWSER) {
+    return {
+      op: DynamicSamplingInnerOperator.CUSTOM,
+      name: condition.category,
+      value: condition.legacyBrowsers ?? [],
+    };
+  }
+
+  const newValue = condition.match
+    .split('\n')
+    .filter(match => !!match.trim())
+    .map(match => match.trim());
+
+  if (
+    condition.category === DynamicSamplingInnerName.EVENT_IP_ADDRESSES ||
+    condition.category === DynamicSamplingInnerName.EVENT_ERROR_MESSAGES ||
+    condition.category === DynamicSamplingInnerName.EVENT_CSP
+  ) {
+    return {
+      op: DynamicSamplingInnerOperator.CUSTOM,
+      name: condition.category,
+      value: newValue,
+    };
+  }
+
+  // DynamicSamplingConditionLogicalInnerGlob
+  if (
+    condition.category === DynamicSamplingInnerName.EVENT_RELEASE ||
+    condition.category === DynamicSamplingInnerName.TRACE_RELEASE ||
+    condition.category === DynamicSamplingInnerName.EVENT_TRANSACTION ||
+    condition.category === DynamicSamplingInnerName.TRACE_TRANSACTION
+  ) {
+    return {
+      op: DynamicSamplingInnerOperator.GLOB_MATCH,
+      name: condition.category,
+      value: newValue,
+    };
+  }
+
+  // DynamicSamplingConditionLogicalInnerEq
+  if (
+    condition.category === DynamicSamplingInnerName.TRACE_USER_ID ||
+    condition.category === DynamicSamplingInnerName.EVENT_USER_ID
+  ) {
+    return {
+      op: DynamicSamplingInnerOperator.EQUAL,
+      name: condition.category,
+      value: newValue,
+      options: {
+        ignoreCase: false,
+      },
+    };
+  }
+
+  // DynamicSamplingConditionLogicalInnerEq
+  return {
+    op: DynamicSamplingInnerOperator.EQUAL,
+    name: condition.category,
+    value: newValue,
+    options: {
+      ignoreCase: true,
+    },
+  };
 }

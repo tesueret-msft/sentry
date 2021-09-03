@@ -13,7 +13,7 @@ import {getMatchFieldPlaceholder} from './utils';
 
 type Condition = {
   category: DynamicSamplingInnerName;
-  match: string;
+  match?: string;
   legacyBrowsers?: Array<LegacyBrowser>;
 };
 
